@@ -7,7 +7,13 @@ use App\Models\Tenant\Catalogs\Department;
 use App\Models\Tenant\Catalogs\IdentityDocumentType;
 use App\Models\Tenant\Catalogs\OperationType;
 use Illuminate\Support\Facades\Cache;
+use Hyn\Tenancy\Environment;
 
+if (!function_exists('tenant')) {
+    function tenant() {
+        return app(Environment::class)->hostname(); // o ->website() si necesitas el website
+    }
+}
 if (!function_exists('func_str_to_upper_utf8')) {
     function func_str_to_upper_utf8($text)
     {

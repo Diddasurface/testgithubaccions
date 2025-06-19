@@ -1,6 +1,6 @@
 <?php
 namespace App\Http\Controllers\Tenant;
-
+use App\Helpers\TenantStorage;
 use App\Exports\DigemidItemExport;
 use App\Exports\ItemExport;
 use App\Exports\ItemExportWp;
@@ -1461,7 +1461,113 @@ class ItemController extends Controller
         $pdf->output('etiquetas_1x'.$format.'_'.now()->format('Y_m_d').'.pdf', 'I');
 
     }
+    /*---------------------------------------------------------------------------------------------------------------------- */
+    public function clicNuevoImprimir(Request $request)
+    {
+        ini_set("pcre.backtrack_limit", "50000000");
+        $id = $request->input('id');
+        $format = (int) $request->input('format');
+        $barcode_width = $request->input('barcode_width'); // valor por defecto
+        $barcode_height = $request->input('barcode_height');
+        $columns = $request->input('columns');
+        $pdf_size = $request->input('pdf_size', null); // si lo usas
 
+        $has_Name = $request->input('has_Name', true);
+        $has_Model = $request->input('has_Model', true);
+        $has_Codin = $request->input('has_Codin', true);
+       
+        $record = Item::find($id);
+        $item_warehouse = ItemWarehouse::where([['item_id', $id], ['warehouse_id', auth()->user()
+            ->establishment->warehouse->id]])->first();
+
+        if(!$item_warehouse){
+            return [
+                'success' => false,
+                'message' => "El producto seleccionado no esta disponible en su almacen!"
+            ];
+        }
+
+        if($item_warehouse->stock < 1){
+            return [
+                'success' => false,
+                'message' => "El producto seleccionado no tiene stock disponible en su almacen, no puede generar etiquetas!"
+            ];
+        }
+
+        $stock = $item_warehouse->stock;
+
+        $width = ($format == 1) ? 84 : 104.1;
+        $height = ($format == 1) ? 30 : 28;
+
+        $width = $pdf_size;
+        
+        $pdf = new Mpdf([
+                'mode' => 'utf-8',
+                'format' => [
+                    $width,
+                    $height
+                    ],
+                'margin_top' => 2,
+                'margin_right' => 2,
+                'margin_bottom' => 0,
+                'margin_left' => 2
+            ]);
+      $html = view('tenant.items.exports.items-barcode-x', compact('record', 'stock', 'format', 'barcode_width', 'barcode_height', 
+            'columns', 
+            'pdf_size', 
+            'has_Name',
+            'has_Model',
+            'has_Codin'))->render();
+
+        // return $html;
+
+        $pdf->WriteHTML($html, HTMLParserMode::HTML_BODY);
+
+        $pdf->output('etiquetas_1x'.$format.'_'.now()->format('Y_m_d').'.pdf', 'I');
+
+    }
+    public function getBarcodeConfig($columns)
+    {
+    $path = "format_{$columns}.json";
+  //$path = storage_path("app/tenancy/tenants/tenancy_demo/format_{$columns}.json");
+
+    /*
+    if (Storage::disk('local')->exists($path)) {
+        $content = Storage::disk('local')->get($path);
+        $config = json_decode($content, true); */ 
+        if (TenantStorage::exists($path)) {
+        $content = TenantStorage::get($path);
+        $config = json_decode($content, true);
+
+        return response()->json([
+            'success' => true,
+            'config' => $config
+        ]);
+    }
+    
+    return response()->json(['success' => false]);
+    }
+
+    public function saveBarcodeConfig(Request $request, $columns)
+    {
+    $path = "format_{$columns}.json";
+
+    $config = [
+        'barcode_height' => $request->input('barcode_height'),
+        'barcode_width' => $request->input('barcode_width'),
+        'columns' => (int) $columns,
+        'pdf_size' => $request->input('tamañopdf'),
+
+        'has_Name' => $request->input('has_Name', true),
+        'has_Model' => $request->input('has_Model', true),
+        'has_Codin' => $request->input('has_Codin', true),
+    ];
+
+   TenantStorage::put($path, json_encode($config, JSON_PRETTY_PRINT));
+
+    return response()->json(['success' => true]);
+    }
+    /*---------------------------------------------------------------------------------------------------------------------- */
     public function itemLast()
     {
         $record = Item::latest()->first();

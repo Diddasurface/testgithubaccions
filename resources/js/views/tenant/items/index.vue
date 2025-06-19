@@ -492,14 +492,19 @@
                                         >
                                             Cod. Barras
                                         </button>
-                                        <button
+                                        <!--<button
                                             class="dropdown-item"
                                             @click.prevent="
                                                 clickPrintBarcode(row)
                                             "
                                         >
                                             Etiquetas
+                                        </button> -->
+                                        <button class="dropdown-item"
+                                        @click.prevent="clickCreatePrint(row.id)">    
+                                            Etiquetas 
                                         </button>
+                                        <!--
                                         <div class="dropdown-divider"></div>
                                         <button
                                             class="dropdown-item"
@@ -524,7 +529,7 @@
                                             "
                                         >
                                             Etiquetas 1x3
-                                        </button>
+                                        </button>-->
                                     </template>
                                 </div>
                             </div>
@@ -588,10 +593,17 @@
                 :configuration="configuration"
                 :showDialog.sync="showExportBartenderDialog"
             ></items-export-bartender>
+             <LabelSettings
+            :show-dialog-label.sync="showDialogLabel"
+            :record-id="recordId"
+             :type="type"
+             @print-barcodex="clicNuevoImprimir">
+        </LabelSettings>  
         </div>
     </div>
 </template>
 <script>
+import LabelSettings from './LabelSettings.vue';
 import ItemsForm from "./form.vue";
 import WarehousesDetail from "./partials/warehouses.vue";
 import ItemsImport from "./import.vue";
@@ -625,6 +637,7 @@ export default {
         ItemsImportExtraInfo,
         ItemsHistory,
         ItemsImportUpdatePrice,
+        LabelSettings,
         ItemsExportBartender
     },
     data() {
@@ -645,6 +658,8 @@ export default {
             recordId: null,
             recordItem: {},
             warehousesDetail: [],
+            showDialogLabel: false,
+            recordId: null,
             columns: {
                 description: {
                     title: "Descripción",
@@ -921,7 +936,28 @@ export default {
                     );
                 }
             });
+        },
+        clickCreatePrint(recordId = null) {
+        this.recordId = recordId;
+        this.showDialogLabel = true;
+        },
+        clicNuevoImprimir(form, x) {
+        if (!form.barcode) {
+            return this.$message.error("Para generar el código de barras debe registrar el código de barras.");
         }
+        const query = new URLSearchParams({
+            format: x,
+            id: form.id,
+            barcode_height: form.barcode_height,
+            barcode_width: form.barcode_width,
+            pdf_size: form.tamañopdf,
+            has_Name: form.has_Name,
+            has_Model: form.has_Model,
+            has_Codin: form.has_Codin,  
+        }).toString();
+
+            window.open(`/${this.resource}/export/barcode/print_x?${query}`);
+        },
     }
 };
 </script>

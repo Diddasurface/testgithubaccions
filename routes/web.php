@@ -1,6 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use App\Http\Controllers\Tenant\ItemController;
 
 $hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
 
@@ -235,6 +236,9 @@ if ($hostname) {
             Route::post('items/visibleMassive', 'Tenant\ItemController@visibleMassive');
             Route::get('items/export/barcode/print', 'Tenant\ItemController@printBarCode')->name('tenant.items.export.barcode.print');
             Route::get('items/export/barcode/print_x', 'Tenant\ItemController@printBarCodeX')->name('tenant.items.export.barcode.print.x');
+            /*nuevocontrollerparaimprimir*/
+            Route::get('items/export/barcode/print_x', 'Tenant\ItemController@clicNuevoImprimir')->name('tenant.items.export.barcode.print.x');
+            /*nuevocontrollerparaimprimir*/
             Route::get('items/export/barcode/last', 'Tenant\ItemController@itemLast')->name('tenant.items.last');
             Route::post('get-items', 'Tenant\ItemController@getAllItems');
 

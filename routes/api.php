@@ -1,5 +1,11 @@
 <?php
 
+use App\Http\Controllers\Tenant\ItemController;
+
+Route::prefix('barcode-config')->group(function () {
+    Route::get('{columns}', [ItemController::class, 'getBarcodeConfig']);
+    Route::post('{columns}', [ItemController::class, 'saveBarcodeConfig']);
+});
 Route::get('generate_token', 'Tenant\Api\MobileController@getSeries');
 
 $hostname = app(Hyn\Tenancy\Contracts\CurrentHostname::class);
