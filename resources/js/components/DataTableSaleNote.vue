@@ -81,7 +81,9 @@
 
 
             <div class="col-md-12">
-                <div class="table-responsive">
+                <div class="scroll-shadow shadow-left" v-show="showLeftShadow"></div>
+                <div class="scroll-shadow shadow-right" v-show="showRightShadow"></div>
+                <div class="table-responsive" ref="scrollContainer">
                     <table class="table">
                         <thead>
                         <slot name="heading"></slot>
@@ -92,9 +94,9 @@
                     </table>
 
                     <div class="row mb-5">
-                        <div class="col-md-4 text-center">Total notas de venta en soles S/. {{totals.total_pen}}</div>
-                        <div class="col-md-4 text-center">Total pagado en soles S/. {{totals.total_paid_pen}}</div>
-                        <div class="col-md-4 text-center">Total por cobrar en soles S/. {{totals.total_pending_paid_pen}}</div>
+                        <div class="col-md-4 text-center">Total notas de venta en soles S/ {{totals.total_pen}}</div>
+                        <div class="col-md-4 text-center">Total pagado en soles S/ {{totals.total_paid_pen}}</div>
+                        <div class="col-md-4 text-center">Total por cobrar en soles S/ {{totals.total_pending_paid_pen}}</div>
                     </div>
 
                     <div>
@@ -148,7 +150,9 @@
                 series: [],
                 isVisible: false,
                 search_by_plate:false,
-                recordItem: null
+                recordItem: null,
+                showLeftShadow: false,
+                showRightShadow: false,
             }
         },
         computed: {
@@ -174,8 +178,28 @@
 
             await this.getRecords()
             await this.getTotals()
+
+            this.$nextTick(() => {
+                const el = this.$refs.scrollContainer;
+                if (el) {
+                    el.addEventListener('scroll', this.checkScrollShadows);
+                    this.checkScrollShadows();
+                }
+            });
         },
         methods: {
+            checkScrollShadows() {
+                const el = this.$refs.scrollContainer;
+                if (!el) return;
+
+                const scrollLeft = el.scrollLeft;
+                const scrollRight = el.scrollWidth - el.clientWidth - scrollLeft;
+
+                const threshold = 2;
+
+                this.showLeftShadow = scrollLeft > threshold;
+                this.showRightShadow = scrollRight > threshold;
+            },
             toggleInformation() {
                 this.isVisible = !this.isVisible;
             },

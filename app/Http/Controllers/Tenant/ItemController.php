@@ -124,8 +124,9 @@ class ItemController extends Controller
     public function getRecords(Request $request)
     {
 
+        $isEcommerce = filter_var($request->query('isEcommerce'), FILTER_VALIDATE_BOOLEAN);
         // $records = Item::whereTypeUser()->whereNotIsSet();
-        $records = $this->getInitialQueryRecords();
+        $records = $this->getInitialQueryRecords($isEcommerce);
 
         $sortField = $request->get('sort_field', 'id');
         $sortDirection = $request->get('sort_direction', 'desc');
@@ -167,6 +168,17 @@ class ItemController extends Controller
                 break;
         }
 
+        if ($request->has('show_disabled')) {
+            switch ($request->show_disabled) {
+                case 'enabled':
+                    $records->where('active', 1);
+                    break;
+                case 'disabled':
+                    $records->where('active', 0);
+                    break;
+                // no hacer nada si es 'all'
+            }
+        }
         if ($request->type) {
             if($request->type ==='PRODUCTS') {
                 // listar solo productos en la lista de productos
@@ -221,10 +233,10 @@ class ItemController extends Controller
      *
      * @return \Illuminate\Database\Eloquent\Builder
      */
-    public function getInitialQueryRecords()
+    public function getInitialQueryRecords($isEcommerce)
     {
 
-        if(Configuration::getRecordIndividualColumn('list_items_by_warehouse'))
+        if(Configuration::getRecordIndividualColumn('list_items_by_warehouse') && !$isEcommerce)
         {
             $records = Item::whereWarehouse()->whereNotIsSet();
         }
@@ -809,6 +821,32 @@ class ItemController extends Controller
 
     }
 
+    public function destroyMassive(Request $request)
+    {
+        $selected = collect($request->selected);
+        $itemDeleted = 0;
+        $count = $selected->count();
+
+
+        if ($count == 0 ) {
+            return [
+                'success'  => false,
+                'message' => 'Tiene que seleccionar los items'
+            ];
+        }
+
+        $selected->each(function($id) use (&$itemDeleted){
+            $response = $this->destroy($id);
+            if ($response['success']) $itemDeleted += 1;
+        });
+
+        return [
+            'success' => true,
+            'message' => "Se eliminaron {$itemDeleted} productos de {$count} productos seleccionados"
+        ];
+
+    }
+
 
 
     public function destroyItemUnitType($id)
@@ -1041,6 +1079,32 @@ class ItemController extends Controller
         }
     }
 
+    public function disableMassive(Request $request)
+    {
+        $selected = collect($request->selected);
+        $itemDisabled = 0;
+        $count = $selected->count();
+
+
+        if ($count == 0 ) {
+            return [
+                'success'  => false,
+                'message' => 'Tiene que seleccionar los items'
+            ];
+        }
+
+        $selected->each(function($id) use (&$itemDisabled){
+            $response = $this->disable($id);
+            if ($response['success']) $itemDisabled += 1;
+        });
+
+        return [
+            'success' => true,
+            'message' => "Se inhabilitaron {$itemDisabled} productos de {$count} productos seleccionados"
+        ];
+
+    }
+
     public function images($item)
     {
         $records = ItemImage::where('item_id', $item)->get()->transform(function($row){
@@ -1088,6 +1152,31 @@ class ItemController extends Controller
             return  ['success' => false, 'message' => 'Error inesperado, no se pudo habilitar el producto'];
 
         }
+    }
+
+    public function enableMassive(Request $request)
+    {
+        $selected = collect($request->selected);
+        $itemEnable = 0;
+        $count = $selected->count();
+
+        if ($count == 0 ) {
+            return [
+                'success'  => false,
+                'message' => 'Tiene que seleccionar los items'
+            ];
+        }
+
+        $selected->each(function($id) use (&$itemEnable){
+            $response = $this->enable($id);
+            if ($response['success']) $itemEnable += 1;
+        });
+
+        return [
+            'success' => true,
+            'message' => "Se habilitaron {$itemEnable} productos de {$count} productos seleccionados"
+        ];
+
     }
 
     /**
@@ -1321,7 +1410,7 @@ class ItemController extends Controller
         }
         $extra_data = $extradata;
         $records = $records->get();
-        $height = 23;
+        $height = 30;
 
         $width = 48;
         $pdfj = new Fpdi();

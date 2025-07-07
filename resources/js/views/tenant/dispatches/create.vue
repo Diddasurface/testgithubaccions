@@ -294,7 +294,6 @@
                             </div>
                         </div>
                         <hr>
-                        <!--<h4>Datos modo de traslado</h4>
                         <div class="row" v-if="form.transport_mode_type_id === '01'">
                             <div class="col-lg-4">
                                 <div class="form-comtrol">
@@ -303,7 +302,7 @@
                                     </el-checkbox>
                                 </div>
                             </div>
-                        </div>-->
+                        </div>
                         <div class="row align-items-center">
                             <div class="col-lg-3">
                                 <h4 class="mb-0" >Datos modo de traslado</h4>
@@ -316,9 +315,10 @@
                                 </div>
                             </div>
                             <div v-if="form.is_transport_m1l" class="col-lg-4">
-                                <div class="form-group mb-0">
-                                    <label class="control-label">Número de placa</label>
+                                <div :class="{ 'has-danger': errors.license_plate_m1l }" class="form-group mb-0">
+                                    <label class="control-label">Número de placa<span class="text-danger"> *</span></label>
                                     <el-input v-model="form.license_plate_m1l"></el-input>
+                                    <small v-if="errors.license_plate_m1l" class="form-control-feedback" v-text="errors.license_plate_m1l[0]"></small>
                                 </div>
                             </div>
                         </div>
@@ -1035,37 +1035,6 @@ export default {
             this.initInputPerson()
         });
 
-        this.initSupplierData()
-        if (this.parentId) {
-            this.form = Object.assign({}, this.form, this.document);
-            this.calculatePackagesFromItems();
-            await this.form.customer_id && this.reloadDataCustomers(this.form.customer_id);
-            await this.form.customer_id && this.getDeliveryAddresses(this.form.customer_id);
-            await this.changeEstablishment()
-            if (this.parentTable !== 'dispatches') {
-                this.setDefaults();
-            }
-            if (this.parentTable == 'purchases') {
-                this.form.transfer_reason_type_id = '02'
-            }
-            if(this.document.document_data.length) {
-                this.form.reference_documents = this.document.document_data;
-            }
-        } else {
-            this.searchRemoteCustomers('')
-            if (this.establishments.length > 0) {
-                this.form.establishment_id = _.head(this.establishments).id;
-            }
-            await this.changeEstablishment()
-            this.changeSeries();
-            this.setDefaults();
-        }
-        this.$eventHub.$on('reloadDataPersons', (customer_id) => {
-            this.reloadDataCustomers(customer_id)
-        })
-        this.$eventHub.$on('initInputPerson', () => {
-            this.initInputPerson()
-        });
     },
     methods: {
         addReferenceDocument(row) {
@@ -1598,6 +1567,10 @@ export default {
             this.calculatePackagesFromItems();
         },
         async submit() {
+            if (this.form.is_transport_m1l && (!this.form.license_plate_m1l || this.form.license_plate_m1l.trim() === '')) {
+                this.errors = {license_plate_m1l: ['El número de placa es obligatorio']};
+                return this.$message.error('El número de placa es obligatorio');
+            }
             if (this.config.affect_all_documents) {
                 this.form.terms_condition = this.config.terms_condition_sale;
             }

@@ -55,61 +55,88 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
         </tr>
     </table>
     @endif
-    @if($document->state_type->id == '11')
+    @if($document->state_type->id == '11') 
     <div class="company_logo_box" style="position: absolute; text-align: center; top:30%;">
         <img
             src="data:{{mime_content_type(public_path("status_images".DIRECTORY_SEPARATOR."anulado.png"))}};base64, {{base64_encode(file_get_contents(public_path("status_images".DIRECTORY_SEPARATOR."anulado.png")))}}"
             alt="anulado" class="" style="opacity: 0.6;">
     </div>
     @endif
+    @if($document->state_type->id == '09')
+    <div class="company_logo_box" style="position: absolute; text-align: center; top:30%;">
+        <img
+            src="data:{{mime_content_type(public_path("status_images".DIRECTORY_SEPARATOR."rechazado.png"))}};base64, {{base64_encode(file_get_contents(public_path("status_images".DIRECTORY_SEPARATOR."rechazado.png")))}}"
+            alt="rechazado" class="" style="opacity: 0.6;">
+    </div>
+    @endif
     <table class="full-width">
         <tr>
             @if($company->logo)
-            <td width="20%">
-                <div class="company_logo_box">
-                    <img
-                        src="data:{{mime_content_type(public_path("{$logo}"))}};base64, {{base64_encode(file_get_contents(public_path("{$logo}")))}}"
-                        alt="{{$company->name}}" class="company_logo" style="max-width: 150px;">
-                </div>
-            </td>
+                <td width="20%">
+                    <div class="company_logo_box">
+                        <img
+                            src="data:{{ mime_content_type(public_path($logo)) }};base64, {{ base64_encode(file_get_contents(public_path($logo))) }}"
+                            alt="{{ $company->name }}" class="company_logo" style="max-width: 150px;">
+                    </div>
+                </td>
+                <td width="50%" class="pl-3 text-center">
+                    <div>
+                        <h4>{{ $company->name }}</h4>
+                        <h5>{{ 'RUC '.$company->number }}</h5>
+                        <h6 style="text-transform: uppercase;">
+                            {{ ($establishment->address !== '-') ? $establishment->address : '' }}
+                            {{ ($establishment->district_id !== '-') ? ', '.$establishment->district->description : '' }}
+                            {{ ($establishment->province_id !== '-') ? ', '.$establishment->province->description : '' }}
+                            {{ ($establishment->department_id !== '-') ? '- '.$establishment->department->description : '' }}
+                        </h6>
+                        @isset($establishment->trade_address)
+                            <h6>{{ $establishment->trade_address !== '-' ? 'D. Comercial: '.$establishment->trade_address : '' }}</h6>
+                        @endisset
+                        <h6>{{ $establishment->telephone !== '-' ? 'Central telefónica: '.$establishment->telephone : '' }}</h6>
+                        <h6>{{ $establishment->email !== '-' ? 'Email: '.$establishment->email : '' }}</h6>
+                        @isset($establishment->web_address)
+                            <h6>{{ $establishment->web_address !== '-' ? 'Web: '.$establishment->web_address : '' }}</h6>
+                        @endisset
+                        @isset($establishment->aditional_information)
+                            <h6>{{ $establishment->aditional_information !== '-' ? $establishment->aditional_information : '' }}</h6>
+                        @endisset
+                    </div>
+                </td>
+                <td width="30%" class="border-box py-4 px-2 text-center">
+                    <h3 class="font-bold">{{ 'R.U.C. '.$company->number }}</h3>
+                    <h5>{{ $document->document_type->description }}</h5>
+                    <h3>{{ $document_number }}</h3>
+                </td>
             @else
-            <td width="20%">
-                {{--<img src="{{ asset('logo/logo.jpg') }}" class="company_logo" style="max-width: 150px">--}}
-            </td>
+                <td colspan="2" width="70%" class="pl-1 text-left">
+                    <div>
+                        <h4>{{ $company->name }}</h4>
+                        <h5>{{ 'RUCs '.$company->number }}</h5>
+                        <h6 style="text-transform: uppercase;">
+                            {{ ($establishment->address !== '-') ? $establishment->address : '' }}
+                            {{ ($establishment->district_id !== '-') ? ', '.$establishment->district->description : '' }}
+                            {{ ($establishment->province_id !== '-') ? ', '.$establishment->province->description : '' }}
+                            {{ ($establishment->department_id !== '-') ? '- '.$establishment->department->description : '' }}
+                        </h6>
+                        @isset($establishment->trade_address)
+                            <h6>{{ $establishment->trade_address !== '-' ? 'D. Comercial: '.$establishment->trade_address : '' }}</h6>
+                        @endisset
+                        <h6>{{ $establishment->telephone !== '-' ? 'Central telefónica: '.$establishment->telephone : '' }}</h6>
+                        <h6>{{ $establishment->email !== '-' ? 'Email: '.$establishment->email : '' }}</h6>
+                        @isset($establishment->web_address)
+                            <h6>{{ $establishment->web_address !== '-' ? 'Web: '.$establishment->web_address : '' }}</h6>
+                        @endisset
+                        @isset($establishment->aditional_information)
+                            <h6>{{ $establishment->aditional_information !== '-' ? $establishment->aditional_information : '' }}</h6>
+                        @endisset
+                    </div>
+                </td>
+                <td width="30%" class="border-box py-4 px-2 text-center">
+                    <h3 class="font-bold">{{ 'R.U.C. '.$company->number }}</h3>
+                    <h5>{{ $document->document_type->description }}</h5>
+                    <h3>{{ $document_number }}</h3>
+                </td>
             @endif
-            <td width="50%" class="pl-3">
-                <div class="text-left">
-                    <h4 class="">{{ $company->name }}</h4>
-                    <h5>{{ 'RUC '.$company->number }}</h5>
-                    <h6 style="text-transform: uppercase;">
-                        {{ ($establishment->address !== '-')? $establishment->address : '' }}
-                        {{ ($establishment->district_id !== '-')? ', '.$establishment->district->description : '' }}
-                        {{ ($establishment->province_id !== '-')? ', '.$establishment->province->description : '' }}
-                        {{ ($establishment->department_id !== '-')? '- '.$establishment->department->description : '' }}
-                    </h6>
-
-                    @isset($establishment->trade_address)
-                    <h6>{{ ($establishment->trade_address !== '-')? 'D. Comercial: '.$establishment->trade_address : '' }}</h6>
-                    @endisset
-
-                    <h6>{{ ($establishment->telephone !== '-')? 'Central telefónica: '.$establishment->telephone : '' }}</h6>
-
-                    <h6>{{ ($establishment->email !== '-')? 'Email: '.$establishment->email : '' }}</h6>
-
-                    @isset($establishment->web_address)
-                    <h6>{{ ($establishment->web_address !== '-')? 'Web: '.$establishment->web_address : '' }}</h6>
-                    @endisset
-
-                    @isset($establishment->aditional_information)
-                    <h6>{{ ($establishment->aditional_information !== '-')? $establishment->aditional_information : '' }}</h6>
-                    @endisset
-                </div>
-            </td>
-            <td width="30%" class="border-box py-4 px-2 text-center">
-                <h3 class="font-bold">{{ 'R.U.C. '.$company->number }}</h3>
-                <h5 class="text-center">{{ $document->document_type->description }}</h5>
-                <h3 class="text-center">{{ $document_number }}</h3>
-            </td>
         </tr>
     </table>
     <table class="full-width mt-5">
@@ -127,7 +154,7 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
         </tr>
         @if($invoice)
         <tr>
-            <td>FECHA DE VENCIMIENTO</td>
+            <td>FECHA VENC.</td>
             <td width="8px">:</td>
             <td>{{$invoice->date_of_due->format('Y-m-d')}}</td>
         </tr>
@@ -507,6 +534,22 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
     {{--<td class="text-left" colspan="3">{{ $document_base->note_description }}</td>--}}
     {{--</tr>--}}
     {{--</table>--}}
+    @php
+    $showBrandColumn = false;
+    $showModelColumn = false;
+
+    foreach ($document->items as $row) {
+        if (!empty($row->item->model)) {
+            $showModelColumn = true;
+        }
+
+        if (!empty($row->m_item->brand->name ?? null)) {
+            $showBrandColumn = true;
+        }
+
+        if ($showModelColumn && $showBrandColumn) break;
+    }
+    @endphp
 
     <table class="full-width mt-10 mb-10">
         <thead class="">
@@ -514,13 +557,53 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
                 <th class="border-top-bottom text-center py-2" width="8%">COD.</th>
                 <th class="border-top-bottom text-center py-2" width="8%">CANT.</th>
                 <th class="border-top-bottom text-center py-2" width="8%">UNIDAD</th>
-                <th class="border-top-bottom text-left py-2">DESCRIPCIÓN</th>
-                <th class="border-top-bottom text-right py-2" width="12%">P.UNIT</th>
+                <th class="border-top-bottom text-left py-2 px-1">DESCRIPCIÓN</th>
+                @php
+                    $showSerieColumn = false;
+                    $showLoteColumn = false;
+                    foreach ($document->items as $row) {
+                        if ($row->item->lots) {
+                            $showSerieColumn = true;
+                            break;
+                        }
+                    }
+
+                    foreach ($document->items as $row) {
+                        if (isset($row->item->IdLoteSelected)) {
+                            $showLoteColumn = true;
+                            break;
+                        }
+                    }
+                @endphp
+                @empty($showSerieColumn) @else <th class="border-top-bottom text-left py-2 px-1">SERIE</th> @endempty
+                @if($showModelColumn)
+                    <th class="border-top-bottom text-left py-2 px-1">MODELO</th>
+                @endif
+                @if($showBrandColumn)
+                    <th class="border-top-bottom text-center py-2 px-1">MARCA</th>
+                @endif
+                @if($showLoteColumn) <th class="border-top-bottom text-center py-2 px-1">
+                    LOTE
+                </th> @endif
+                @if($showLoteColumn) <th class="border-top-bottom text-center py-2 px-1"> F. VENC. </th> @endif
+                <th class="border-top-bottom text-right py-2" width="8%">P.UNIT</th>
                 <th class="border-top-bottom text-right py-2" width="8%">DTO.</th>
-                <th class="border-top-bottom text-right py-2" width="12%">TOTAL</th>
+                <th class="border-top-bottom text-right py-2" width="8%">TOTAL</th>
             </tr>
         </thead>
         <tbody>
+            @php
+                $colspan_base = 6;
+                $colspan_total = $colspan_base;
+
+                if($showSerieColumn) $colspan_total++;
+                if($showModelColumn) $colspan_total++;
+                if($showBrandColumn) $colspan_total++;
+                if($showLoteColumn) {
+                    $colspan_total++;
+                    $colspan_total++;
+                }
+            @endphp
             @foreach($document->items as $row)
             <tr>
                 <td class="text-center align-top">{{ $row->item->internal_id }}</td>
@@ -585,7 +668,44 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
                     *** Pago Anticipado ***
                     @endif
                 </td>
+                
+                @empty($showSerieColumn) @else
+                <td class="text-left align-top">
+                    @isset($row->item->lots)
+                        @foreach($row->item->lots as $lot)
+                            @if( isset($lot->has_sale) && $lot->has_sale)
+                                <span style="font-size: 9px">{{ $lot->series }}</span><br>
+                            @endif
+                        @endforeach
+                    @endisset
+                </td>
+                @endempty
+                @if($showModelColumn)
+                    <td class="text-left align-top">{{ $row->item->model ?? '' }}</td>
+                @endif
 
+                @if($showBrandColumn)
+                    <td class="text-left align-top">
+                        {{ $row->m_item->brand->name ?? '' }}
+                    </td>
+                @endif
+                @inject('itemLotGroup', 'App\Services\ItemLotsGroupService')
+                @php
+                    $lot = $itemLotGroup->getLote($row->item->IdLoteSelected);
+                    $date_due = $itemLotGroup->getLotDateOfDue($row->item->IdLoteSelected);
+                @endphp
+                @if($showLoteColumn) <td class="text-center align-top">
+                    {{ $lot }}
+                </td> @endif
+                @if($showLoteColumn) <td class="text-center align-top">
+                    @if($showLoteColumn)
+                        @if($date_due != '')
+                            {{ $date_due }}
+                        @elseif($row->relation_item->date_of_due)
+                            {{ $row->relation_item->date_of_due->format('Y-m-d')  }}
+                        @endif
+                    @endif
+                </td> @endif
                 @if ($configuration_decimal_quantity->change_decimal_quantity_unit_price_pdf)
                 <td class="text-right align-top">{{ $row->generalApplyNumberFormat($row->unit_price, $configuration_decimal_quantity->decimal_quantity_unit_price_pdf) }}</td>
                 @else
@@ -608,11 +728,9 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
                 <td class="text-right align-top">{{ number_format($row->total, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="7" class="border-bottom"></td>
+                <td colspan="{{ $colspan_total+1 }}" class="border-bottom"></td>
             </tr>
             @endforeach
-
-
 
             @if ($document->prepayments)
             @foreach($document->prepayments as $p)
@@ -628,32 +746,32 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
                 <td class="text-right align-top">-{{ number_format($p->total, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="7" class="border-bottom"></td>
+                <td colspan="{{ $colspan_total+1 }}" class="border-bottom"></td>
             </tr>
             @endforeach
             @endif
 
             @if($document->total_exportation > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">OP. EXPORTACIÓN: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">OP. EXPORTACIÓN: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_exportation, 2) }}</td>
             </tr>
             @endif
             @if($document->total_free > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">OP. GRATUITAS: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">OP. GRATUITAS: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_free, 2) }}</td>
             </tr>
             @endif
             @if($document->total_unaffected > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">OP. INAFECTAS: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">OP. INAFECTAS: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_unaffected, 2) }}</td>
             </tr>
             @endif
             @if($document->total_exonerated > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">OP. EXONERADAS: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">OP. EXONERADAS: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_exonerated, 2) }}</td>
             </tr>
             @endif
@@ -661,45 +779,45 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
             @if ($document->document_type_id === '07')
             @if($document->total_taxed >= 0)
             <tr>
-                <td colspan="6" class="text-right">OP. GRAVADAS: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right">OP. GRAVADAS: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right">{{ number_format($document->total_taxed, 2) }}</td>
             </tr>
             @endif
             @elseif($document->total_taxed > 0)
             <tr>
-                <td colspan="6" class="text-right">OP. GRAVADAS: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right">OP. GRAVADAS: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right">{{ number_format($document->total_taxed, 2) }}</td>
             </tr>
             @endif
 
             @if($document->total_plastic_bag_taxes > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">ICBPER: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">ICBPER: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_plastic_bag_taxes, 2) }}</td>
             </tr>
             @endif
             <tr>
-                <td colspan="6" class="text-right">IGV: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right">IGV: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right">{{ number_format($document->total_igv, 2) }}</td>
             </tr>
 
             @if($document->total_isc > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">ISC: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">ISC: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_isc, 2) }}</td>
             </tr>
             @endif
 
             @if($document->total_discount > 0 && $document->subtotal > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">SUBTOTAL: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">SUBTOTAL: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->subtotal, 2) }}</td>
             </tr>
             @endif
 
             @if($document->total_discount > 0)
             <tr>
-                <td colspan="6"
+                <td colspan="{{ $colspan_total }}"
                     class="text-right font-bold">{{(($document->total_prepayment > 0) ? 'ANTICIPO':'DESCUENTO TOTAL')}}
                     : {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_discount, 2) }}</td>
@@ -715,13 +833,13 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
             }
             @endphp
             <tr>
-                <td colspan="6" class="text-right font-bold">CARGOS ({{$total_factor}}
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">CARGOS ({{$total_factor}}
                     %): {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_charge, 2) }}</td>
             </tr>
             @else
             <tr>
-                <td colspan="6" class="text-right font-bold">CARGOS: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">CARGOS: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_charge, 2) }}</td>
             </tr>
             @endif
@@ -729,49 +847,49 @@ $type = App\CoreFacturalo\Helpers\Template\TemplateHelper::getTypeSoap();
 
             @if($document->perception)
             <tr>
-                <td colspan="6" class="text-right font-bold">IMPORTE TOTAL: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">IMPORTE TOTAL: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="6" class="text-right font-bold">PERCEPCIÓN: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">PERCEPCIÓN: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->perception->amount, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="6" class="text-right font-bold">TOTAL A PAGAR: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">TOTAL A PAGAR: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format(($document->total + $document->perception->amount), 2) }}</td>
             </tr>
             @elseif($document->retention)
             <tr>
-                <td colspan="6" class="text-right font-bold"
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold"
                     style="font-size: 16px;">IMPORTE TOTAL: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold" style="font-size: 16px;">{{ number_format($document->total, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="6" class="text-right">TOTAL RETENCIÓN ({{ $document->retention->percentage * 100 }}
+                <td colspan="{{ $colspan_total }}" class="text-right">TOTAL RETENCIÓN ({{ $document->retention->percentage * 100 }}
                     %): {{ $document->currency_type->symbol }}</td>
                 <td class="text-right">{{ number_format($document->retention->amount, 2) }}</td>
             </tr>
             <tr>
-                <td colspan="6" class="text-right">IMPORTE NETO: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right">IMPORTE NETO: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right">{{ number_format(($document->total - $document->retention->amount), 2) }}</td>
             </tr>
             @else
             <tr>
-                <td colspan="6" class="text-right font-bold">TOTAL A PAGAR: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">TOTAL A PAGAR: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total, 2) }}</td>
             </tr>
             @endif
 
             @if(($document->retention || $document->detraction) && $document->total_pending_payment > 0)
             <tr>
-                <td colspan="6" class="text-right font-bold">M. PENDIENTE: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">M. PENDIENTE: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format($document->total_pending_payment, 2) }}</td>
             </tr>
             @endif
 
             @if($balance < 0)
                 <tr>
-                <td colspan="6" class="text-right font-bold">VUELTO: {{ $document->currency_type->symbol }}</td>
+                <td colspan="{{ $colspan_total }}" class="text-right font-bold">VUELTO: {{ $document->currency_type->symbol }}</td>
                 <td class="text-right font-bold">{{ number_format(abs($balance),2, ".", "") }}</td>
                 </tr>
                 @endif

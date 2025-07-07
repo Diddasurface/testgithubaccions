@@ -241,8 +241,7 @@
                                     :clearable="false"
                                     readonly
                                     type="date"
-                                    value-format="dd-MM-yyyy"
-                                    format="dd-MM-yyyy"
+                                    value-format="yyyy-MM-dd"
                                     @change="changeDateOfIssue"
                                 ></el-date-picker>
                                 <small
@@ -254,7 +253,7 @@
                         </div>
                         <div class="col-lg-3">
                             <div
-                                :class="{ 'has-danger': errors.date_of_issue }"
+                                :class="{ 'has-danger': errors.date_of_due }"
                                 class="form-group"
                             >
                                 <label class="control-label">Fecha de vencimiento</label>
@@ -262,8 +261,7 @@
                                     v-model="document.date_of_due"
                                     :clearable="false"
                                     type="date"
-                                    value-format="dd-MM-yyyy"
-                                    format="dd-MM-yyyy"
+                                    value-format="yyyy-MM-dd"
                                 ></el-date-picker>
                                 <small
                                     v-if="errors.date_of_due"
@@ -507,6 +505,8 @@ export default {
         this.loadConfiguration();
         this.$store.commit('setConfiguration', this.configuration);
         this.currentRent = this.rent
+        this.currentRent.input_date =  moment(this.currentRent.input_date).toDate()
+        this.currentRent.output_date =  moment(this.currentRent.output_date).toDate()
     },
     data() {
         return {
@@ -514,6 +514,7 @@ export default {
             currentRent: {},
             arrears: 0,
             total: 0,
+            debtRoom: 0,
             loading: false,
             totalPaid: 0,
             totalDebt: 0,
@@ -584,7 +585,6 @@ export default {
     },
     watch: {
         arrears(value) {
-            console.log('arrears');
             if (isNaN(value)) {
                 return;
             }
@@ -795,17 +795,15 @@ export default {
                 });
         },
         onUpdateItemsWithExtras() {
-            console.log('onUpdateItemsWithExtras');
             this.document.items = this.document.items.map((it) => {
                 if (it.item_id === this.room.item_id) {
-                    const name = `${this.room.item.item.description} x ${this.room.item.quantity} noche(s)`;
+                    let dayQuantity = it.quantity;
+                    const name = `${it.item.name} x ${dayQuantity} noche(s)`;
                     it.item.description = name;
                     it.item.full_description = name;
                     it.name_product_pdf = name;
                     it.quantity = 1;
-                    const newTotal =
-                        parseFloat(this.room.item.total) + parseFloat(this.arrears);
-                    console.log(newTotal);
+                    const newTotal = parseFloat(it.total) + parseFloat(this.arrears);
                     it.input_unit_price_value = parseFloat(newTotal);
                     it.item.unit_price = parseFloat(newTotal);
                     it.unit_value = parseFloat(newTotal);

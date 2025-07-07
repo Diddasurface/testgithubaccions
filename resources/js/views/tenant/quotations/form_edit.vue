@@ -521,6 +521,56 @@
                             </div>
 
                             <div class="col-md-4">
+                                <span
+                                    style="display: flex;justify-content: end;"
+                                >
+                                    <div
+                                        v-if="
+                                            form.total > 0 &&
+                                                enabled_discount_global
+                                        "
+                                    >
+                                        <td>
+                                            <el-tooltip
+                                                class="item"
+                                                :content="
+                                                    global_discount_type.description
+                                                "
+                                                effect="dark"
+                                                placement="top"
+                                            >
+                                                <i
+                                                    class="fa fa-info-circle"
+                                                ></i>
+                                            </el-tooltip>
+
+                                            DESCUENTO
+                                            <template v-if="is_amount">
+                                                MONTO</template
+                                            >
+                                            <template v-else>
+                                                %</template
+                                            >
+                                            <el-checkbox
+                                                v-model="is_amount"
+                                                class="ml-1 mr-1"
+                                                @change="changeTypeDiscount"
+                                            ></el-checkbox>
+                                            :
+                                        </td>
+                                        <td>
+                                            <el-input-number
+                                                v-model="total_global_discount"
+                                                :min="0"
+                                                class="input-custom"
+                                                controls-position="right"
+                                                @change="
+                                                    changeTotalGlobalDiscount
+                                                "
+                                            ></el-input-number>
+                                        </td>
+                                    </div>
+                                </span>
                                 <p class="text-right" v-if="form.total_exportation > 0">OP.EXPORTACIÓN:
                                     {{ currency_type.symbol }} {{ form.total_exportation }}</p>
                                 <p class="text-right" v-if="form.total_free > 0">OP.GRATUITAS: {{
@@ -650,6 +700,12 @@ export default {
             recordItem: null,
             sellers: [],
             total_discount_no_base: 0,
+            global_discount_type: {},
+            global_discount_types: [],
+            enabled_discount_global: false,
+            total_global_discount: 0,
+            is_amount: true,
+            recordDiscountsGlobal: null
         }
     },
     async created() {
@@ -668,6 +724,8 @@ export default {
                 this.form.establishment_id = (this.establishments.length > 0) ? this.establishments[0].id : null
                 this.payment_method_types = response.data.payment_method_types
                 this.payment_destinations = response.data.payment_destinations
+                this.global_discount_types = response.data.global_discount_types;
+                this.enabled_discount_global = response.data.enabled_discount_global;
                 /* this.configuration = response.data.configuration */
                 this.sellers = response.data.sellers
 
@@ -677,6 +735,7 @@ export default {
                 this.allCustomers()
                 this.initRecord()
                 this.selectDestinationSale()
+                this.setConfigGlobalDiscountType();
 
             })
         await this.getPercentageIgv();
@@ -700,7 +759,15 @@ export default {
             if (this.configuration) return this.configuration.add_description_to_document_item
 
             return false
-        }
+        },
+        isGlobalDiscountBase: function() {
+
+            if (this.recordDiscountsGlobal) {
+                return this.recordDiscountsGlobal.discount_type_id === "02";
+            }
+
+            return this.configuration.global_discount_type_id === "02";
+        },
     },
     methods: {
         clickShowItemDetail(id)
@@ -710,6 +777,30 @@ export default {
         ...mapActions([
             'loadConfiguration',
         ]),
+        setGlobalDiscount(factor, amount, base) {
+            this.form.discounts.push({
+                discount_type_id: this.recordDiscountsGlobal ? this.recordDiscountsGlobal.discount_type_id : this.global_discount_type.id,
+                description: this.recordDiscountsGlobal ? this.recordDiscountsGlobal.description : this.global_discount_type.description,
+                factor: factor,
+                amount: amount,
+                base: base,
+                is_amount: this.is_amount
+            });
+
+            
+        },
+        changeTypeDiscount() {
+            this.calculateTotal();
+        },
+        changeTotalGlobalDiscount() {
+            this.calculateTotal();
+        },
+        setConfigGlobalDiscountType() {
+            this.global_discount_type = _.find(this.global_discount_types, {
+                id: this.configuration.global_discount_type_id
+            });
+            
+        },
         clickAddItem() {
             this.recordItem = null;
             this.showDialogAddItem = true;
@@ -831,9 +922,7 @@ export default {
         initRecord() {
             this.$http.get(`/${this.resource}/record/${this.resourceId}`)
                 .then(response => {
-
                     let dato = response.data.data.quotation
-                    //  console.log(dato)
                     this.form.id = dato.id
                     this.form.customer_id = dato.customer_id
                     this.form.currency_type_id = dato.currency_type_id
@@ -854,8 +943,14 @@ export default {
                     this.form.referential_information = dato.referential_information
                     this.changeCustomer()
                     this.form.customer_address_id = dato.customer.address_id
+
+                    if (dato.discounts[0]) {
+                        this.recordDiscountsGlobal = dato.discounts[0];
+                        let discount_type_id = dato.discounts[0].discount_type_id
+                        this.total_global_discount = discount_type_id !== "02" ? dato.total_discount : 
+                        _.round(Number(dato.total_discount * 1.18).toFixed(3), 2);
+                    }
                     this.calculateTotal()
-                    //console.log(response.data)
                 })
 
         },
@@ -998,7 +1093,7 @@ export default {
             this.form.items = items
             this.calculateTotal()
         },
-        calculateTotal() {
+        calculateTotal(recalculate = true) {
             let total_discount = 0
             let total_charge = 0
             let total_exportation = 0
@@ -1017,7 +1112,13 @@ export default {
                 total_charge += parseFloat(row.total_charge)
 
                 if (row.affectation_igv_type_id === '10') {
-                    total_taxed += parseFloat(row.total_value)
+                    if (row.total_value_without_rounding) {
+                        total_taxed += parseFloat(
+                            row.total_value_without_rounding
+                        );
+                    } else {
+                        total_taxed += parseFloat(row.total_value);
+                    }
                 }
                 if (row.affectation_igv_type_id === '20') {
                     total_exonerated += parseFloat(row.total_value)
@@ -1052,7 +1153,23 @@ export default {
                 this.total_discount_no_base += sumAmountDiscountsNoBaseByItem(row)
 
             });
+            let total_taxes = total_igv;
+            let total_all = total - this.total_discount_no_base;
 
+            let totals_without_rounding = {
+                total_discount,
+                total_charge,
+                total_exportation,
+                total_taxed,
+                total_exonerated,
+                total_unaffected,
+                total_free,
+                total_igv,
+                total_value,
+                total: total_all,
+                total_igv_free,
+                total_taxes
+            };
             this.form.total_igv_free = _.round(total_igv_free, 2)
             this.form.total_discount = _.round(total_discount, 2)
             this.form.total_exportation = _.round(total_exportation, 2)
@@ -1065,12 +1182,115 @@ export default {
             this.form.total_taxes = _.round(total_igv, 2)
 
             this.form.subtotal = _.round(total, 2)
-            this.form.total = _.round(total - this.total_discount_no_base, 2)
+            this.form.total = _.round(total_all, 2);
 
-            // this.form.total = _.round(total, 2)
 
             this.setTotalDefaultPayment()
+            
+            if (this.enabled_discount_global && this.total_global_discount > 0)
+                this.discountGlobal(totals_without_rounding);
 
+        },
+        deleteDiscountGlobal() {
+            let discount = _.find(this.form.discounts, {
+                discount_type_id: this.configuration.global_discount_type_id
+            });
+            // let discount = _.find(this.form.discounts, {'discount_type_id': '03'})
+            let index = this.form.discounts.indexOf(discount);
+
+            if (index > -1) {
+                this.form.discounts.splice(index, 1);
+                this.form.total_discount = 0;
+            }
+            this.form.discounts = []
+        },
+        discountGlobal(ctx) {
+            this.deleteDiscountGlobal();
+
+            let amount_discount = this.total_global_discount;
+
+        
+
+            if (this.is_amount) {
+
+                if (this.recordDiscountsGlobal) {
+                    if (this.recordDiscountsGlobal.discount_type_id === "02") {
+                        amount_discount =  this.total_global_discount / (1 + this.percentage_igv)
+                    } else {
+                        amount_discount = this.total_global_discount
+                    }
+                    
+                } else {
+                    amount_discount =
+                        (this.configuration.global_discount_type_id === "02" &&
+                        this.configuration.exact_discount) 
+                            ? this.total_global_discount / (1 + this.percentage_igv)
+                            : this.total_global_discount;
+
+                }
+            }
+            let input_global_discount = parseFloat(amount_discount);
+
+            if (input_global_discount > 0) {
+                const percentage_igv = this.percentage_igv * 100;
+                let base = this.isGlobalDiscountBase
+                    ? parseFloat(ctx.total_taxed)
+                    : parseFloat(ctx.total);
+                let amount = 0;
+                let factor = 0;
+
+                if (this.is_amount) {
+                    amount = input_global_discount;
+                    factor = _.round(amount / base, 5);
+                } else {
+                    factor = _.round(input_global_discount / 100, 5);
+                    amount = factor * base;
+                }
+
+                // descuentos que afectan la bi
+                if (this.isGlobalDiscountBase) {
+                    let total_taxed = base - amount;
+                    let total_igv = total_taxed * (percentage_igv / 100);
+                    let total_taxes = total_igv;
+                    let total = total_taxed + total_taxes;
+
+                    this.form.total_taxed = _.round(
+                        parseFloat(total_taxed.toFixed(3)),
+                        2
+                    );
+
+                    this.form.total_value = this.form.total_taxed;
+
+                    this.form.total_igv = _.round(
+                        total_taxed * (percentage_igv / 100),
+                        2
+                    );
+
+                    //impuestos (isc + igv + icbper)
+                    this.form.total_taxes = _.round(
+                        parseFloat(total_taxes.toFixed(3)),
+                        2
+                    );
+                    this.form.total = _.round(total, 2);
+                    this.form.subtotal = this.form.total;
+
+                    if (this.form.total <= 0)
+                        this.$message.error(
+                            "El total debe ser mayor a 0, verifique el tipo de descuento asignado (Configuración/Avanzado/Contable)"
+                        );
+                }
+                // descuentos que no afectan la bi
+                else {
+                    this.form.total = _.round(this.form.total - amount, 2);
+                }
+
+                this.form.total_discount = _.round(amount, 2);
+                this.setGlobalDiscount(
+                    factor,
+                    _.round(amount, 2),
+                    _.round(base, 2)
+                );
+            }
         },
         validate_payments() {
 

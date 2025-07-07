@@ -203,7 +203,7 @@
                                 slot="append"
                                 @click.prevent="showDialogNewItem = true"
                                 class="btn-add-product-pos"
-                                >Nuevo Productoss</el-button
+                                >Nuevo Producto</el-button
                             >
                         </template>
                     </el-input>
@@ -2642,10 +2642,6 @@ export default {
                         this.percentage_igv
                     )
                 );
-                return {
-                    ...newRow,
-                    unit_type_id: row.unit_type_id,
-                };
             });
             this.form.items = items;
             this.calculateTotal();

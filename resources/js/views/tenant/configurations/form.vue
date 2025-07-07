@@ -1455,7 +1455,7 @@
                                         @click.prevent="showDialogPdfFooterImages = true">
                                         [+ Agregar imágenes al pdf]
                                         <el-tooltip class="item"
-                                            content="Agrega las imágenes en el footer del pdf - Disponible para Cotización en formato A4, usando la plantilla pdf Default/Default3"
+                                            content="Agrega las imágenes en el footer del pdf - Disponible para Cotización en formato A4, usando la plantilla pdf Default"
                                             effect="dark" placement="top-start">
                                             <i class="ml-2 fa fa-info-circle"></i>
                                         </el-tooltip>
@@ -1495,6 +1495,28 @@
                                     <label>Cantidad a aplicar por día</label>
                                     <el-input v-model="form.finances.arrears_amount" class="input-with-select"
                                         placeholder="Please input">
+                                        <el-button slot="append" @click="submit">
+                                            <i class="fa fa-save"></i>
+                                        </el-button>
+                                    </el-input>
+                                </div>
+                            </div>
+                            <div class="col-12 mt-4">
+                                <div class="form-group" style="display: flex; flex-direction: column;">
+                                    <label>Restricción para deuda vencida
+                                        <el-tooltip class="item"
+                                            effect="dark"
+                                            content="Clientes con deuda vencida mayor a los días establecidos, no podrán realizar compras a crédito.">
+                                            <i class="fa fa-info-circle"></i>
+                                        </el-tooltip>
+                                    </label>
+                                    <el-switch v-model="form.finances.restriction_expired_debt" active-text="Si" inactive-text="No"
+                                        @change="submit"></el-switch>
+                                </div>
+                                <div v-if="form.finances.restriction_expired_debt" class="form-group" style="max-width: 300px;">
+                                    <label>Días máximos de deuda vencida</label>
+                                    <el-input v-model="form.finances.max_expired_days" class="input-with-select"
+                                        placeholder="Ingrese días">
                                         <el-button slot="append" @click="submit">
                                             <i class="fa fa-save"></i>
                                         </el-button>
@@ -1569,9 +1591,9 @@
                             <div class="col-6 mt-4">
                                 <div class="form-group">
                                     <label>
-                                        Listar servicios al inicio de Pos
+                                        Activar servicios
                                         <el-tooltip class="item"
-                                            content="Normalmente, los servicios necesitan ser buscados, en este caso, se podran listar al inicio"
+                                            content="Muestra los servicios en el punto de venta. Si está desactivado, no se podrán vender."
                                             effect="dark" placement="top-start">
                                             <i class="fa fa-info-circle"></i>
                                         </el-tooltip>

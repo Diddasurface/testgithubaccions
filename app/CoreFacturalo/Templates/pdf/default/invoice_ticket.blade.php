@@ -59,6 +59,13 @@
             alt="anulado" class="" style="opacity: 0.6;">
     </div>
 @endif
+@if($document->state_type->id == '09')
+    <div style="position: absolute; width: 100%; text-align: center; top:30%; left: 0; right: 0; margin: auto;">
+        <img
+            src="data:{{mime_content_type(public_path("status_images".DIRECTORY_SEPARATOR."rechazado.png"))}};base64, {{base64_encode(file_get_contents(public_path("status_images".DIRECTORY_SEPARATOR."rechazado.png")))}}"
+            alt="rechazado" class="" style="opacity: 0.6; width: 50%;">
+    </div>
+@endif
 <table class="full-width">
     <tr>
         <td class="text-center"><h4>{{ $company->name }}</h4></td>
@@ -444,8 +451,8 @@
         <th class="border-top-bottom desc-9 text-left">CANT.</th>
         <th class="border-top-bottom desc-9 text-left">UNIDAD</th>
         <th class="border-top-bottom desc-9 text-left">DESCRIPCIÓN</th>
-        <th class="border-top-bottom desc-9 text-left">P.UNIT</th>
-        <th class="border-top-bottom desc-9 text-left">TOTAL</th>
+        <th class="border-top-bottom desc-9 text-right">P.UNIT</th>
+        <th class="border-top-bottom desc-9 text-right">TOTAL</th>
     </tr>
     </thead>
     <tbody>
@@ -520,6 +527,33 @@
                     <br>
                     *** Pago Anticipado ***
                 @endif
+                @inject('itemLotGroup', 'App\Services\ItemLotsGroupService')
+                @php
+                    $lot = $itemLotGroup->getLote($row->item->IdLoteSelected);
+                    $date_due = $itemLotGroup->getLotDateOfDue($row->item->IdLoteSelected);
+                @endphp
+                @if($lot)
+                    <small style="display:block; font-weight: normal; font-size: 7px;">
+                        Lote: {{ ltrim($lot, '/') }}  
+                        <br>
+                        FV: 
+                        @if($date_due != '')
+                            {{ ltrim($date_due, '/') }}
+                        @elseif($row->relation_item->date_of_due)
+                            {{ $row->relation_item->date_of_due->format('y-m-d') }}
+                        @endif 
+                        <br>
+                    </small>
+                @endif
+                <small style="display:block; font-weight: normal; font-size: 7px;">
+                    @isset($row->item->lots)
+                        @foreach($row->item->lots as $lot)
+                            @if( isset($lot->has_sale) && $lot->has_sale)
+                                <span> Serie: {{ $lot->series }}</span><br>
+                            @endif
+                        @endforeach
+                    @endisset
+                </small>
             </td>
             <td class="text-right desc-9 align-top">{{ number_format($row->unit_price, 2) }}</td>
             <td class="text-right desc-9 align-top font-bold">{{ number_format($row->total, 2) }}</td>

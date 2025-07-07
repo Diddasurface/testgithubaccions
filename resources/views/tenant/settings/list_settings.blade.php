@@ -21,7 +21,7 @@
     </ol>
 </div>
 
-<div class="row tab-content-default row-new bg-transparent">
+<div class="row tab-content-default row-new bg-transparent border-0">
     <div class="col-6 col-md-4 mb-4">
         <div class="card card-dashboard card-reports">
             <div class="card-body">
@@ -156,9 +156,9 @@
                     </li>
                     @endif
                     @if($vc_company->soap_type_id != '03')
-                    <li>
+                    {{-- <li>
                         <a href="{{route('tenant.offline_configurations.index')}}">Modo offline</a>
-                    </li>
+                    </li> --}}
                     <li>
                         <a href="{{route('tenant.series_configurations.index')}}">Numeración de facturación</a>
                     </li>
@@ -224,6 +224,9 @@
                     </li>
                     <li>
                         <a href="{{route('tenant.incentives.index')}}">Productos</a>
+                    </li>
+                    <li>
+                        <a href="{{ route('tenant.pending_account_commissions.index') }}">Cuentas pendientes</a>
                     </li>
                 </ul>
             </div>

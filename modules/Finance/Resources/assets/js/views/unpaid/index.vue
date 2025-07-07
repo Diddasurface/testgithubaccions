@@ -133,6 +133,26 @@
                                                 ></el-option>
                                             </el-select>
                                         </div>
+
+                                        <div class="col-md-3 form-modern">
+                                            <label class="control-label">Tipo de fecha</label>
+                                            <el-select
+                                                v-model="form.date_type"
+                                                @change="loadUnpaid"
+                                            >
+                                                <el-option
+                                                    key="emission"
+                                                    value="emission"
+                                                    label="Fecha de emisión"
+                                                    ></el-option>
+                                                    <el-option
+                                                    key="due"
+                                                    value="due"
+                                                    label="Fecha de vencimiento"
+                                                    ></el-option>
+                                                </el-select>
+                                        </div>
+
                                         <template
                                             v-if="
                                                 form.period === 'month' ||
@@ -241,6 +261,19 @@
                                                     :label="item.name"
                                                     :value="item.id"
                                                 ></el-option>
+                                            </el-select>
+                                        </div>
+
+                                        <div class="col-md-3 form-modern" v-if="columns.estado.visible">
+                                            <label class="control-label">Estado</label>
+                                            <el-select
+                                                v-model="form.estado"
+                                                clearable
+                                                placeholder="Seleccionar estado"
+                                                @change="loadUnpaid"
+                                            >
+                                                <el-option label="Vigente" value="vigente"></el-option>
+                                                <el-option label="Vencido" value="vencido"></el-option>
                                             </el-select>
                                         </div>
 
@@ -454,8 +487,12 @@
                                                 >
                                             </el-badge>
                                         </div>
+                                        
+                                        <div class="col-md-12">
+                                        <div class="scroll-shadow shadow-left" v-show="showLeftShadow"></div>
+                                        <div class="scroll-shadow shadow-right" v-show="showRightShadow"></div>
 
-                                        <div class="col-md-12 table-responsive">
+                                        <div class="table-responsive" ref="scrollContainer">
                                             <table class="table">
                                                 <thead>
                                                     <tr>
@@ -469,6 +506,7 @@
                                                         <th>Cliente</th>
                                                         <th>Usuario</th>
                                                         <th>Días de retraso</th>
+                                                        <th v-if="columns.estado.visible">Estado</th>
                                                         <th>Penalidad</th>
                                                         <th>Guías</th>
                                                         <th
@@ -576,6 +614,11 @@
                                                                         : "No tiene días atrasados."
                                                                 }}
                                                             </td>
+
+                                                            <td v-if="columns.estado.visible">
+                                                                {{ getEstado(row.date_of_due) }}
+                                                            </td>
+
                                                             <td>
                                                                 <el-popover
                                                                     placement="right"
@@ -867,6 +910,7 @@
                                                 </el-pagination>
                                             </div>
                                         </div>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
@@ -905,7 +949,8 @@ export default {
         return {
             isVisible: false,
             resource: "finances/unpaid",
-            form: {},
+            form: {
+            },
             customers: [],
             recordId: null,
             records: [],
@@ -941,8 +986,14 @@ export default {
                 retention_amount: {
                     title: "Monto Retención",
                     visible: true
-                }
-            }
+                },
+                estado: {
+                    title: "Estado",
+                    visible: false    // o false según lo que quieras por defecto
+                }                
+            },
+            showLeftShadow: false,
+            showRightShadow: false,
         };
     },
     async created() {
@@ -1066,11 +1117,35 @@ export default {
             }).toFixed(2);
         }
     },
-
+    async mounted() {
+        this.$nextTick(() => {
+            const el = this.$refs.scrollContainer;
+            if (el) {
+                el.addEventListener('scroll', this.checkScrollShadows);
+                this.checkScrollShadows();
+            }
+        });
+    },
     methods: {
+        checkScrollShadows() {
+            const el = this.$refs.scrollContainer;
+            if (!el) return;
+            
+            const scrollLeft = el.scrollLeft;
+            const scrollRight = el.scrollWidth - el.clientWidth - scrollLeft;
+            
+            this.showLeftShadow = scrollLeft > 1;
+            this.showRightShadow = scrollRight > 1;
+        },
+        getEstado(date_of_due) {
+            if (!date_of_due) return "Vigente";
+            const hoy = moment().startOf('day');
+            const vencimiento = moment(date_of_due, ['YYYY-MM-DD', 'DD/MM/YYYY', 'YYYY/MM/DD', 'DD-MM-YYYY']).startOf('day');
+            return vencimiento.isBefore(hoy) ? "Vencido" : "Vigente";
+        },
         formatDate(date) {
             if (!date) return null;
-            const parsedDate = moment(date);
+            const parsedDate = moment(date, ['YYYY/MM/DD', 'YYYY-MM-DD', 'DD/MM/YYYY', 'DD-MM-YYYY']);
             return parsedDate.isValid()
                 ? parsedDate.format("DD-MM-YYYY")
                 : null;
@@ -1103,7 +1178,8 @@ export default {
                 month_end: moment().format("YYYY-MM"),
                 customer_id: null,
                 user_id: null,
-                payment_method_type_id: null
+                payment_method_type_id: null,
+                date_type: "emission",
             };
         },
         async filter() {

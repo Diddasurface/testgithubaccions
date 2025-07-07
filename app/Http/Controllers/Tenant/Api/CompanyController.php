@@ -31,7 +31,7 @@ class CompanyController extends Controller
                                ->whereType('customers')
                                ->whereIsEnabled()
                                ->orderBy('name')
-                               ->take(200)
+                               ->take(2000)
                                ->get()->transform(function ($row) {
                                     return [
                                         'id'                                     => $row->id,
@@ -45,7 +45,9 @@ class CompanyController extends Controller
                                     ];
 
                                 });
-        $payment_method_types = PaymentMethodType::all();
+        $payment_method_types = PaymentMethodType::NotCredit()->
+        where('id', '!=', '07')->get();
+
         $payment_destinations = $this->getPaymentDestinations();
         return [
             'series' => $series,

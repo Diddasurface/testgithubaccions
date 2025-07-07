@@ -72,6 +72,9 @@ h1, h2, h3, h4, h5, h6, .h1, .h2, .h3, .h4, .h5, .h6{
     background-color: var(--light-color);
     border: 1px solid var(--accent-color);
 }
+.btn-theme-white{
+    background-color: rgb(144, 218, 217);
+}
 .row.card-header.no-gutters.align-items-start div {
     align-self: center;
 }
@@ -718,11 +721,11 @@ html.sidebar-left-collapsed .sidebar-left .nav-main > li > a {
     color: var(--light-color) !important;
 }
 .toggle-button-invoice.shift {
-    right: 400px !important;
     background-color: var(--primary-color) !important;
     color: var(--light-color) !important;
 }
 .toggle-button.shift{
+    right: 400px !important;
     background-color: var(--primary-color) !important;
     color: var(--light-color) !important;
     z-index: 1023 !important;
@@ -763,6 +766,21 @@ html.fixed.sidebar-white:not(.dark) .sidebar-left a {
     color: #888 !important;
     cursor: not-allowed;
     border-color: transparent !important;
+}
+.button-truncate .el-tooltip.fa-info-circle{
+    right: 14px !important;
+    top: 14px !important;
+}
+.list-products-container{
+    padding-top: 10px !important;
+    padding-bottom: 10px !important;
+}
+.shadow-left {
+    left: 4px !important;
+}
+
+.shadow-right {
+    right: 4px !important;
 }
 @media only screen and (min-width: 768px) {
     html.sidebar-left-collapsed .sidebar-left,
@@ -2777,5 +2795,8 @@ html.dark .el-input.el-input--small.el-input-group.el-input-group--append .el-in
     transform: translate(0px, 0px);
     height: 42px;
     border-radius: 0 8px 8px 0;
+}
+html.dark .table-hover > tbody > tr:hover > td, html.dark .table-hover > tbody > tr:hover > th{
+    background-color: var(--contents-dark);
 }
 /* end */

@@ -156,7 +156,23 @@
             <!-- <div class="card-header bg-info">
                 <h3 class="my-0">{{ title }}</h3>
             </div> -->
-            <div class="data-table-visible-columns">
+            <div class="data-table-visible-columns">                
+                <el-dropdown v-if="selected.length > 0">
+                    <span class="el-dropdown-link">
+                        <el-button aria-expanded="false"
+                            class="btn btn-custom btn-sm dropdown-toggle"
+                            data-toggle="dropdown"
+                            type="button">
+                            Acciones masivas
+                        </el-button>
+                    </span>
+                    <el-dropdown-menu slot="dropdown">
+                        <el-dropdown-item @click.native="clickDeleteSelected">Eliminar</el-dropdown-item>                        
+                        <el-dropdown-item @click.native="duplicateSelected">Duplicar</el-dropdown-item>
+                        <el-dropdown-item @click.native="clickDisableSelected">Inhabilitar</el-dropdown-item>
+                        <el-dropdown-item @click.native="clickEnableSelected">Habilitar</el-dropdown-item>
+                    </el-dropdown-menu>                  
+                </el-dropdown>
                 <el-dropdown :hide-on-click="false">
                     <el-button type="primary">
                         Mostrar/Ocultar columnas<i
@@ -182,9 +198,9 @@
                 </el-dropdown>
             </div>
             <div class="card-body">
-                <data-table :productType="type" :resource="resource" :sort-field="sortField" :sort-direction="sortDirection" @sort-change="handleSortChange">
+                <data-table ref="DataTable" :productType="type" :resource="resource" :sort-field="sortField" :sort-direction="sortDirection" @sort-change="handleSortChange">
                     <tr slot="heading" width="100%" slot-scope="{ sort }">
-                        <!-- <th>#</th> -->
+                        <th></th>
                         <th class="text-right" style="max-width: 83px;">ID</th>
                         <th class="text-right">Cód. Interno</th>
                         <th>Unidad</th>
@@ -267,7 +283,12 @@
                         slot-scope="{ index, row }"
                         :class="{ disable_color: !row.active }"
                     >
-                        <!-- <td>{{ index }}</td> -->
+                        <td>
+                          <el-checkbox
+                            :value="selected.includes(row.id)"
+                            @change="handleSelectionChange(row.id)"
+                          ></el-checkbox>
+                        </td>
                         <td class="text-right">{{ row.id }}</td>
                         <td class="text-right">{{ row.internal_id }}</td>
                         <td>{{ row.unit_type_id }}</td>
@@ -460,34 +481,6 @@
                                         </button>
                                         <button
                                             class="dropdown-item"
-                                            @click.prevent="clickDelete(row.id)"
-                                        >
-                                            Eliminar
-                                        </button>
-                                        <button
-                                            class="dropdown-item"
-                                            @click.prevent="duplicate(row.id)"
-                                        >
-                                            Duplicar
-                                        </button>
-                                        <button
-                                            v-if="row.active"
-                                            class="dropdown-item"
-                                            @click.prevent="
-                                                clickDisable(row.id)
-                                            "
-                                        >
-                                            Inhabilitar
-                                        </button>
-                                        <button
-                                            v-else
-                                            class="dropdown-item"
-                                            @click.prevent="clickEnable(row.id)"
-                                        >
-                                            Habilitar
-                                        </button>
-                                        <button
-                                            class="dropdown-item"
                                             @click.prevent="clickBarcode(row)"
                                         >
                                             Cod. Barras
@@ -602,6 +595,11 @@
         </div>
     </div>
 </template>
+<style>
+.dropdown-menu.show {
+    max-height: 130px;
+}
+</style>
 <script>
 import LabelSettings from './LabelSettings.vue';
 import ItemsForm from "./form.vue";
@@ -642,6 +640,7 @@ export default {
     },
     data() {
         return {
+            selected: [],
             can_add_new_product: false,
             showDialog: false,
             showImportDialog: false,
@@ -709,7 +708,7 @@ export default {
             showDialogHistory: false,
             showDialogItemStock: false,
             sortField: localStorage.getItem('itemSortField') || 'id',
-            sortDirection: localStorage.getItem('itemSortDirection') || 'desc'
+            sortDirection: localStorage.getItem('itemSortDirection') || 'desc',
         };
     },
     created() {
@@ -737,6 +736,8 @@ export default {
         });
         this.canCreateProduct();
         this.getItems();
+
+        this.filterDisabled = localStorage.getItem('filterDisabled') || 'all'
     },
     computed: {
         ...mapState([
@@ -759,6 +760,114 @@ export default {
         }
     },
     methods: {
+        reloadTable() {
+          localStorage.setItem('filterDisabled', this.filterDisabled)
+          this.$refs.DataTable.showDisabled = this.filterDisabled;
+          this.$refs.DataTable.getRecords();
+        },
+        clickDeleteSelected() {
+            return new Promise((resolve) => {
+                this.$confirm('¿Desea eliminar los registro seleccionado?', 'Eliminar', {
+                    confirmButtonText: 'Eliminar',
+                    cancelButtonText: 'Cancelar',
+                    type: 'warning'
+                }).then(() => {
+                    this.$http.post(`${this.resource}/destroyMassive`, {
+                        selected: this.selected
+                    })
+                        .then(res => {
+                            if(res.data.success) {
+                                this.$message.success(res.data.message)
+                                this.selected = []
+                                this.$eventHub.$emit("reloadData")
+                                resolve()
+                            }else{
+                                this.$message.error(res.data.message)
+                                resolve()
+                            }
+                        })
+                        .catch(error => {
+                            if (error.response.status === 500) {
+                                this.$message.error('Error al intentar eliminar');
+                            } else {
+                                console.log(error.response.data.message)
+                            }
+                        })
+                }).catch(error => {
+                    console.log(error)
+                });
+            })
+        },
+        clickDisableSelected() {
+            return new Promise((resolve) => {
+                this.$confirm('¿Desea inhabilitar los registros seleccionados?', 'Inhabilitar', {
+                    confirmButtonText: 'Inhabilitar',
+                    cancelButtonText: 'Cancelar',
+                    type: 'warning'
+                }).then(() => {
+                    this.$http.post(`${this.resource}/disableMassive`, {
+                        selected: this.selected
+                    })
+                        .then(res => {
+                            if(res.data.success) {
+                                this.$message.success(res.data.message)
+                                this.selected = []
+                                this.$eventHub.$emit("reloadData")
+                                resolve()
+                            }else{
+                                this.$message.error(res.data.message)
+                                resolve()
+                            }
+                        })
+                        .catch(error => {
+                            if (error.response.status === 500) {
+                                this.$message.error('Error al intentar inhabilitar');
+                            } else {
+                                console.log(error.response.data.message)
+                            }
+                        })
+                }).catch(error => {
+                    console.log(error)
+                });
+            })
+        },
+        duplicateSelected() {
+            this.selected.forEach(id => this.duplicate(id));
+            this.selected = []
+        },
+        clickEnableSelected() {
+            return new Promise((resolve) => {
+                this.$confirm('¿Desea habilitar los registros seleccionados?', 'Habilitar', {
+                    confirmButtonText: 'Habilitar',
+                    cancelButtonText: 'Cancelar',
+                    type: 'warning'
+                }).then(() => {
+                    this.$http.post(`${this.resource}/enableMassive`, {
+                        selected: this.selected
+                    })
+                        .then(res => {
+                            if(res.data.success) {
+                                this.$message.success(res.data.message)
+                                this.selected = []
+                                this.$eventHub.$emit("reloadData")
+                                resolve()
+                            }else{
+                                this.$message.error(res.data.message)
+                                resolve()
+                            }
+                        })
+                        .catch(error => {
+                            if (error.response.status === 500) {
+                                this.$message.error('Error al intentar habilitar');
+                            } else {
+                                console.log(error.response.data.message)
+                            }
+                        })
+                }).catch(error => {
+                    console.log(error)
+                });
+            })
+        },
         handleSortChange(sort) {
             if (this.sortField === sort.field && this.sortDirection === 'desc' && sort.field === 'description') {
                 this.sortField = 'id';
@@ -937,6 +1046,7 @@ export default {
                 }
             });
         },
+
         clickCreatePrint(recordId = null) {
         this.recordId = recordId;
         this.showDialogLabel = true;
@@ -944,7 +1054,19 @@ export default {
         clicNuevoImprimir(form, x) {
         if (!form.barcode) {
             return this.$message.error("Para generar el código de barras debe registrar el código de barras.");
+
         }
+      /*  =======
+        handleSelectionChange(id) {
+          const index = this.selected.indexOf(id);
+          if (index > -1) {
+            this.selected.splice(index, 1);
+          } else {
+            this.selected.push(id);
+          }
+          console.log(this.selected);
+          
+>>>>>>> origin2/main*/
         const query = new URLSearchParams({
             format: x,
             id: form.id,

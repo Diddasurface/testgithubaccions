@@ -392,14 +392,42 @@ class DashboardView
             $sale_notes->where('customer_id', $customer_id);
             $documents->where('customer_id', $customer_id);
         }
-        if ($d_start && $d_end) {
+        /*if ($d_start && $d_end) {
             $sale_notes->whereBetween('sale_notes.date_of_issue', [$d_start, $d_end]);
             $documents->whereBetween('documents.date_of_issue', [$d_start, $d_end]);
+        }*/
+        if ($d_start && $d_end) {
+            $date_type = $request['date_type'] ?? 'emission';
+    
+            if ($date_type === 'due') {
+                $documents->leftJoin('invoices', 'documents.id', '=', 'invoices.document_id')
+                        ->whereBetween('invoices.date_of_due', [$d_start, $d_end]);
+        
+                $sale_notes->whereBetween('sale_notes.due_date', [$d_start, $d_end]);
+            } else {
+                $sale_notes->whereBetween('sale_notes.date_of_issue', [$d_start, $d_end]);
+                $documents->whereBetween('documents.date_of_issue', [$d_start, $d_end]);
+            }
         }
         // return $documents->union($sale_notes);
         if($purchase_order !== null){
             $documents->where('purchase_order',$purchase_order);
             $sale_notes->where('purchase_order',$purchase_order);
+        }
+        if (!empty($request['estado'])) {
+            if ($request['estado'] === 'vigente') {
+                // Documentos
+                $documents->leftJoin('invoices as invoices_estado', 'documents.id', '=', 'invoices_estado.document_id');
+                $documents->whereDate('invoices_estado.date_of_due', '>=', now()->toDateString());
+
+                // Sale Notes
+                $sale_notes->whereDate('sale_notes.due_date', '>=', now()->toDateString());
+            } elseif ($request['estado'] === 'vencido') {
+                $documents->leftJoin('invoices as invoices_estado', 'documents.id', '=', 'invoices_estado.document_id');
+                $documents->whereDate('invoices_estado.date_of_due', '<', now()->toDateString());
+
+                $sale_notes->whereDate('sale_notes.due_date', '<', now()->toDateString());
+            }
         }
         if($web_platform_id != 0){
             $web_platform_table_name = (new WebPlatform())->getTable();

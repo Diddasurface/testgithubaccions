@@ -5,6 +5,7 @@
         append-to-body
         @close="close"
         @open="create"
+        :close-on-click-modal="false"
     >
         <form autocomplete="off" @submit.prevent="submit">
             <div class="form-body">
@@ -566,6 +567,7 @@
                     :loading="loading_submit"
                     native-type="submit"
                     type="primary"
+                    @click.prevent="submit"
                     >Guardar
                 </el-button>
             </div>
@@ -1289,7 +1291,7 @@ export default {
                 });
             }
 
-            if (this.form.discounts.length) {
+            if (this.form.discounts && this.form.discounts.length) {
                 this.form.total_discount = _.round(amount, 2);
                 this.form.total_value = _.round(base - amount, 2);
                 this.form.total_igv = _.round(
@@ -1580,7 +1582,22 @@ export default {
                 this.load_record = false;
             }
         },
+        ensureFormArraysExist() {
+            const simpleArrays = ['items', 'discounts', 'charges', 'prepayments', 'guides'];
+            simpleArrays.forEach(key => {
+                if (!this.form[key]) this.form[key] = [];
+            });
+
+            if (!this.form.payments && this.form.payment_condition_id === '01') 
+                this.form.payments = [];
+  
+            if (!this.form.fee && ['02', '03'].includes(this.form.payment_condition_id)) 
+                this.form.fee = [];
+            },
         submit() {
+
+            this.ensureFormArraysExist();
+            
             if (parseFloat(this.form.prepayment) > parseFloat(this.form.cost)) {
                 return this.$message.error(
                     "Pago adelantado no puede ser mayor al costo"

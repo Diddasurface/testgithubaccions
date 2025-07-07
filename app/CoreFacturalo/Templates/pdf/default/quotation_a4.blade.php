@@ -111,10 +111,21 @@
         @endif
     </tr>
     @endif
+        <tr>
+            <td class="align-top">MONEDA: 
+            </td>
+            <td>
+                @if($document->currency_type_id == 'PEN')
+                Soles
+                @elseif($document->currency_type_id == 'USD')
+                Dolares
+                @endif
+            </td>
+        </tr>
     @if ($document->account_number)
     <tr>
         <td class="align-top">N° Cuenta:</td>
-        <td colspan="3">
+        <td colspan="1">
             {{ $document->account_number }}
         </td>
     </tr>
@@ -208,7 +219,10 @@
     <tbody>
     @foreach($document->items as $row)
         <tr>
-            <td class="text-center align-top">{{ $row->item->internal_id }}</td>
+            @php
+                $internal_id = optional($row->item)->internal_id;
+            @endphp
+            <td class="text-center align-top">{{ $internal_id }}</td>
             <td class="text-center align-top">
                 @if(((int)$row->quantity != $row->quantity))
                     {{ $row->quantity }}
