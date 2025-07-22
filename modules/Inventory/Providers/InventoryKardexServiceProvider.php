@@ -17,7 +17,7 @@ use Modules\Item\Models\ItemLotsGroup;
 use Modules\Item\Models\ItemLot;
 use Modules\Inventory\Models\DevolutionItem;
 use App\Models\Tenant\DispatchItem;
-
+use Illuminate\Support\Facades\Log;
 
 /**
  * Se debe tener en cuenta este provider para llevar el control de Kardex
@@ -51,7 +51,7 @@ class InventoryKardexServiceProvider extends ServiceProvider
     }
 
     /**
-     *Se dispara luego de crear la compra.
+     *Se dispara luego de crear la compra. 
      */
     private function purchase() {
         PurchaseItem::created(function (PurchaseItem $purchase_item) {
@@ -387,16 +387,18 @@ class InventoryKardexServiceProvider extends ServiceProvider
     }
 
     /**
-     * Se dispara al generar un pedido
+     * Se dispara al generar un pedido modificiar aqui pedido
      */
     private function order_note() {
 
         OrderNoteItem::created(function (OrderNoteItem $order_note_item) {
+            
+            Log::info('Contenido de $order_note_item:', $order_note_item->toArray());
             /** @todo bloque repetido, buscar colocar en funcion */
             $item = $order_note_item->item;
             $document = $order_note_item->order_note;
+            Log::info('Contenido de $document:', $document->toArray());
             $warehouse_id = $order_note_item->warehouse_id;
-
             $presentationQuantity = $item->presentation->quantity_unit ?? 1;
             // $warehouse = $this->findWarehouse($order_note_item->order_note->establishment_id);
             // $warehouse = ($warehouse_id) ? $this->findWarehouse($this->findWarehouseById($warehouse_id)->establishment_id) : $this->findWarehouse($order_note_item->order_note->establishment_id);
@@ -413,7 +415,8 @@ class InventoryKardexServiceProvider extends ServiceProvider
                     $this->findWarehouse($this->findWarehouseById($warehouse_id)->establishment_id) :
                     $this->findWarehouse();
                 //$this->createInventory($item_id, $factor * $order_note_item->quantity, $warehouse->id);
-                $this->createInventoryKardex($document, $item_id, $quanty, $warehouse->id);
+		        //aqui se peude cambiar el $document por el modelo mismo "order_items"
+                $this->createInventoryKardex($document, $item_id, $quanty, $warehouse->id); 
                 if (!$document->sale_note_id && !$document->order_note_id && !$document->dispatch_id) {
                     $this->updateStock($item_id, ($quanty), $warehouse->id);
                 } else {

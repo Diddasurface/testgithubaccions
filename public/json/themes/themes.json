@@ -78,5 +78,31 @@
         "--borders-dark": "#322d2d",
         "--button-second": "#140f0f",
         "--font-family": "'Questrial', sans-serif;"
+    },
+    "deep-blue-button": {
+        "--primary-color": "#0044ff",               
+        "--dark-color": "#002d80",                 
+        "--light-color": "#e6f0ff",               
+        "--accent-color": "#7dafff",               
+        "--highlight-color": "#3366ff",            
+        "--background-dark": "#001a33",           
+        "--contents-dark": "#0d2e57",              
+        "--inputs-dark": "#1a3d80",                
+        "--borders-dark": "#3366cc",              
+        "--button-second": "#0055ff",              
+        "--font-family": "'Questrial', sans-serif;"
+    },
+    "vibrant-purple": {
+        "--primary-color": "#8e44ad",           
+        "--dark-color": "#5e3370",               
+        "--light-color": "#f3e9f7",              
+        "--accent-color": "#d2b4de",            
+        "--highlight-color": "#a569bd",          
+        "--background-dark": "#2c003e",         
+        "--contents-dark": "#3e0a5d",           
+        "--inputs-dark": "#512e5f",             
+        "--borders-dark": "#76448a",            
+        "--button-second": "#af7ac5",          
+        "--font-family": "'Questrial', sans-serif;"
     }
 }

@@ -3,7 +3,7 @@
 /* Admin Reseller*/
 
 .body-sign .card.card-header.card-primary {
-    background: #18181b !important;
+    background: #f7f7ff !important;
 }
 
 .input-group-text {
@@ -45,7 +45,7 @@ ul.nav-main>li a:hover {
 }
 
 .text-secondary {
-    color: #1f1f1f !important;
+    color: #ff3c3c !important;
 }
 
 .text-success {

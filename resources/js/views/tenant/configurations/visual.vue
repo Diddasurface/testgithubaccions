@@ -89,6 +89,19 @@
                             @click="onChangeTheme('lemonade')"
                             style="background-color: #cddfae;"
                         ></button>
+                        <button
+                            type="button"
+                            :class="{ 'theme-selected': visuals.sidebar_theme === 'deep-blue-button' }"
+                            @click="onChangeTheme('deep-blue-button')"
+                            style="background-color: #0044ff;"
+                        ></button>
+                        <button
+                            type="button"
+                            :class="{ 'theme-selected': visuals.sidebar_theme === 'vibrant-purple' }"
+                            @click="onChangeTheme('vibrant-purple')"
+                            style="background-color: #8e44ad;"
+                        ></button>
+                        
                     </div>
                 </div>
 
